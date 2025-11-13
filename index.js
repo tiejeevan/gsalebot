@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Bot Cop - Standalone Automated Bot
+ * Bot Cop - Standalone Automated Bot (Web Service Mode)
  * 
  * Features:
  * - Sends messages to random users every 2 minutes
@@ -10,8 +10,10 @@
  * - Robust error handling and recovery
  * - Health monitoring
  * - Graceful shutdown
+ * - HTTP server for Render.com free tier compatibility
  */
 
+const http = require('http');
 const BotService = require('./bot-service');
 
 // Configuration from environment variables
@@ -22,6 +24,7 @@ const CONFIG = {
     phoneUsername: process.env.REPORT_USERNAME || 'phone',
     intervalMinutes: parseInt(process.env.INTERVAL_MINUTES || '2'),
     healthCheckInterval: 30000, // 30 seconds
+    port: parseInt(process.env.PORT || '3000'), // HTTP server port
 };
 
 // Bot instances
@@ -224,10 +227,79 @@ async function start() {
         console.log('✅ Bot Cop is now running!');
         console.log('Press Ctrl+C to stop.\n');
 
+        // Start HTTP server for Render.com
+        startHttpServer();
+
     } catch (error) {
         console.error('❌ Failed to start bot:', error.message);
         process.exit(1);
     }
+}
+
+/**
+ * Start HTTP server for health checks and keeping service alive
+ */
+function startHttpServer() {
+    const server = http.createServer((req, res) => {
+        const url = req.url;
+
+        // Health check endpoint
+        if (url === '/' || url === '/health') {
+            const stats = copBot ? copBot.getStats() : { total: 0, successes: 0, errors: 0 };
+            const isHealthy = copBot ? copBot.isHealthy() : false;
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+                status: 'running',
+                healthy: isHealthy,
+                uptime: process.uptime(),
+                stats: stats,
+                message: '🤖 Bot Cop is running!'
+            }));
+        }
+        // Status endpoint
+        else if (url === '/status') {
+            const stats = copBot ? copBot.getStats() : { total: 0, successes: 0, errors: 0 };
+            
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Bot Cop Status</title>
+                    <style>
+                        body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
+                        h1 { color: #333; }
+                        .stat { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+                        .healthy { color: green; }
+                        .unhealthy { color: red; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🤖 Bot Cop Status</h1>
+                    <div class="stat">Status: <strong class="${copBot && copBot.isHealthy() ? 'healthy' : 'unhealthy'}">${copBot && copBot.isHealthy() ? '✅ Healthy' : '❌ Unhealthy'}</strong></div>
+                    <div class="stat">Uptime: <strong>${Math.floor(process.uptime())} seconds</strong></div>
+                    <div class="stat">Total Actions: <strong>${stats.total}</strong></div>
+                    <div class="stat">Successes: <strong>${stats.successes}</strong></div>
+                    <div class="stat">Errors: <strong>${stats.errors}</strong></div>
+                    <div class="stat">Success Rate: <strong>${stats.successRate}</strong></div>
+                    <p><em>Bot sends messages and comments every ${CONFIG.intervalMinutes} minutes</em></p>
+                </body>
+                </html>
+            `);
+        }
+        // 404
+        else {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('Not Found');
+        }
+    });
+
+    server.listen(CONFIG.port, '0.0.0.0', () => {
+        console.log(`\n🌐 HTTP Server running on port ${CONFIG.port}`);
+        console.log(`   Health check: http://localhost:${CONFIG.port}/health`);
+        console.log(`   Status page: http://localhost:${CONFIG.port}/status\n`);
+    });
 }
 
 /**

@@ -16,14 +16,14 @@ git push -u origin main
 ### Step 2: Create Render Service
 
 1. Go to [Render.com Dashboard](https://dashboard.render.com/)
-2. Click **"New +"** → **"Background Worker"**
+2. Click **"New +"** → **"Web Service"** (FREE tier available!)
 3. Connect your GitHub repository
 4. Configure:
    - **Name**: `gsalebot` (or any name you prefer)
    - **Environment**: `Node`
    - **Build Command**: `npm install`
    - **Start Command**: `npm start`
-   - **Plan**: Free (or your preferred plan)
+   - **Plan**: **Free** ← Select this!
 
 ### Step 3: Add Environment Variables
 
@@ -39,17 +39,32 @@ In Render dashboard, add these environment variables:
 
 ### Step 4: Deploy
 
-1. Click **"Create Background Worker"**
+1. Click **"Create Web Service"**
 2. Render will automatically:
    - Clone your repository
    - Run `npm install`
    - Start the bot with `npm start`
+   - Assign a public URL (e.g., `https://gsalebot.onrender.com`)
 
 ### Step 5: Monitor
 
-- View logs in Render dashboard
-- Check bot activity in your app (user "phone" receives reports)
+- **View logs**: Render dashboard
+- **Check bot activity**: Login as "phone" in your app to see reports
+- **Health check**: Visit `https://your-bot-url.onrender.com/health`
+- **Status page**: Visit `https://your-bot-url.onrender.com/status`
 - Bot will auto-restart if it crashes
+
+### Step 6: Keep It Alive (Optional)
+
+Render free tier spins down after 15 minutes of inactivity. To keep it alive:
+
+**Option 1: Use a ping service (Recommended)**
+- [UptimeRobot](https://uptimerobot.com/) - Free, pings every 5 minutes
+- [Cron-job.org](https://cron-job.org/) - Free, customizable intervals
+- Set it to ping: `https://your-bot-url.onrender.com/health`
+
+**Option 2: Self-ping**
+The bot can ping itself, but this uses your free tier hours.
 
 ## Important Notes
 

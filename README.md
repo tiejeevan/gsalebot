@@ -43,9 +43,9 @@ npm start
 node index.js
 ```
 
-## Deployment to Render.com
+## Deployment to Render.com (FREE)
 
-1. Create a new **Background Worker** service
+1. Create a new **Web Service** (FREE tier available!)
 2. Connect your repository
 3. Set build command: `npm install`
 4. Set start command: `npm start`
@@ -55,15 +55,22 @@ node index.js
    - `BOT_PASSWORD` - Bot password (default: 123456)
    - `REPORT_USERNAME` - User to receive reports (default: phone)
    - `INTERVAL_MINUTES` - Interval in minutes (default: 2)
+6. The bot will run continuously and respond to HTTP requests at `/health` and `/status`
 
 ## How It Works
 
 1. Bot authenticates with the backend API
-2. Every 2 minutes, it sends a message to a random user
-3. Every 2 minutes (offset by 1 minute), it comments on a random post
-4. All activities are reported to the designated user
-5. Health checks run every 30 seconds
-6. Automatic recovery if errors occur
+2. Starts an HTTP server (for Render.com free tier)
+3. Every 2 minutes, it sends a message to a random user
+4. Every 2 minutes (offset by 1 minute), it comments on a random post
+5. All activities are reported to the designated user
+6. Health checks run every 30 seconds
+7. Automatic recovery if errors occur
+
+## Endpoints
+
+- `GET /` or `GET /health` - JSON health check
+- `GET /status` - HTML status page with statistics
 
 ## Requirements
 
@@ -80,6 +87,7 @@ node index.js
 | `BOT_PASSWORD` | Bot password | `123456` |
 | `REPORT_USERNAME` | User to receive reports | `phone` |
 | `INTERVAL_MINUTES` | Action interval in minutes | `2` |
+| `PORT` | HTTP server port | `3000` |
 
 ## Stopping the Bot
 
