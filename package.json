@@ -1,0 +1,19 @@
+{
+  "name": "gsalebot",
+  "version": "1.0.0",
+  "description": "Standalone bot for automated messaging and commenting",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "keywords": ["bot", "automation"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
